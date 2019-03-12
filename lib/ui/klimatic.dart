@@ -39,6 +39,15 @@ class _KlimaticState extends State<Klimatic> {
             child: new Text("Ahmedabad",
               style: cityStyle(),
             ),
+          ),
+          new Container(
+            alignment: Alignment.center,
+            child: new Image.asset('images/light_rain.png'),
+          ),
+          new Container(
+            alignment: Alignment.center,
+            margin: const EdgeInsets.fromLTRB(30, 210, 0,0),
+            child: new Text("67.00f",style: tempStyle(),),
           )
         ],
       ),
@@ -51,5 +60,13 @@ TextStyle cityStyle(){
     color: Colors.white,
     fontSize: 23,
     fontStyle: FontStyle.italic
+  );
+}
+TextStyle tempStyle(){
+  return new TextStyle(
+    color: Colors.white,
+    fontStyle: FontStyle.normal,
+    fontWeight: FontWeight.bold,
+    fontSize: 50
   );
 }
