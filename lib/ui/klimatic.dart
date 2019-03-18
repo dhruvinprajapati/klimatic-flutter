@@ -15,10 +15,23 @@ class Klimatic extends StatefulWidget {
 }
 
 class _KlimaticState extends State<Klimatic> {
+  String _cityupdate;
+  Future _goToNextScreen(BuildContext context) async{
+    Map results = await Navigator.of(context).push(
+      new MaterialPageRoute<Map>(builder: (BuildContext context){
+        return new changeCity();
+      })
+    );
+    if(results != null && results.containsKey('enter'))
+    {
+      _cityupdate = results['enter'];
+      // print(results['enter'].toString());
+    }
+  }
 
   void showStuff() async{
     Map data = await  getWeather(util.apiId, util.defaultCity);
-    print(data.toString());
+    //print(data.toString());
   }
 
   @override
@@ -31,7 +44,7 @@ class _KlimaticState extends State<Klimatic> {
         actions: <Widget>[
           new IconButton(
             icon: new Icon(Icons.menu),
-            onPressed: showStuff,
+            onPressed: () {_goToNextScreen(context);},
           )
         ],
       ),
@@ -48,7 +61,7 @@ class _KlimaticState extends State<Klimatic> {
           new Container(
             alignment: Alignment.topRight,
             margin: const EdgeInsets.fromLTRB(0.0, 11, 21, 0),
-            child: new Text("Ahmedabad",
+            child: new Text('$_cityupdate',
               style: cityStyle(),
             ),
           ),
@@ -58,18 +71,89 @@ class _KlimaticState extends State<Klimatic> {
           ),
           new Container(
             alignment: Alignment.center,
-            margin: const EdgeInsets.fromLTRB(30, 210, 0,0),
-            child: new Text("67.00f",style: tempStyle(),),
+            margin: const EdgeInsets.fromLTRB(50, 390, 0,0),
+            child: updateTempWidget(_cityupdate),
+            //new Text("67.00f",style: tempStyle(),)
           )
         ],
       ),
     );
   }
   Future<Map> getWeather(String apiId,String city) async {
-    // String apiurl = 'https://samples.openweathermap.org/data/2.5/weather?q=$city&APPID=${util.apiId}';
-    String apiurl = 'http://api.openweathermap.org/data/2.5/weather?q=$city&APPID=${util.apiId}&units=imperial';
+    String apiurl = 'http://api.openweathermap.org/data/2.5/weather?q=$city&APPID=${util.apiId}&units=metric';
     http.Response response =await http.get(apiurl);
     return json.decode(response.body);
+  }
+  Widget updateTempWidget(String city){
+    return new FutureBuilder(
+      future: getWeather(util.apiId, city == null ? util.defaultCity :city),
+      builder: (BuildContext context,AsyncSnapshot<Map> snapshot){
+        if(snapshot.hasData){
+          Map content =snapshot.data;
+          return new Container(
+            child: new Column(
+              children: <Widget>[
+                new ListTile(
+                  title: new Text(content['main']['temp'].toString()+"C",
+                  style: tempStyle(),),
+                  subtitle: new ListTile(
+                    title: new Text("Humidity: ${content['main']['humidity'].toString()} \n ""min: ${content['main']['temp_min'].toString()} \n"" max: ${content['main']['temp_max'].toString()}\n",style: new TextStyle(color: Colors.white),),
+                  ),
+                )
+              ],
+            ),
+          );
+        }
+        else{
+          return new Container();
+        }
+    });
+  }
+}
+
+class changeCity extends StatelessWidget {
+  var _cityFieldController = new TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+        appBar: AppBar(
+          title: new Text("City"),
+          backgroundColor: Colors.red,
+          centerTitle: true,
+        ),
+        body: new Stack(
+          children: <Widget>[
+            new Center(
+              child: new Image.asset('images/white_snow.png',width: 500,height: 1200,fit: BoxFit.fill,),
+            ),
+
+            new ListView(
+              children: <Widget>[
+                new ListTile(
+                  title: new TextField(
+                    decoration: new InputDecoration(
+                      hintText: 'Enter City'
+                    ),
+                    controller: _cityFieldController,
+                    keyboardType: TextInputType.text,
+                  ),
+                ),
+                new ListTile(
+                  title: new FlatButton(
+                    onPressed: () {
+                      Navigator.pop(context,{
+                        'enter':_cityFieldController.text,
+                      });
+                    },
+                    textColor: Colors.black,
+                    child: new Text("get the wether"),
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+    );
   }
 }
 
